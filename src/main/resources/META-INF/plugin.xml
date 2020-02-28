@@ -1,0 +1,28 @@
+<idea-plugin>
+    <id>org.example.FlutterJsonSerializableAuto</id>
+    <name>FlutterJsonSerializableAuto</name>
+    <vendor email="ykrank@gmail.com" url="https://github.com/ykrank">ykrank</vendor>
+
+    <description><![CDATA[
+    Auto import, create toJson, fromJson, default constructor for flutter json_serializable plugin.<br>
+    ]]></description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+        <action id="Flutter.AutoJson.GenerateAction" class="com.ykrank.flutter.GenerateJson" text="JsonSerializable"
+                description="Generate code for flutter json_serializable model.">
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
+            <add-to-group group-id="EditMenu" anchor="first" />
+            <add-to-group group-id="EditorPopupMenu" anchor="first" />
+            <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt J" />
+        </action>
+    </actions>
+</idea-plugin>
