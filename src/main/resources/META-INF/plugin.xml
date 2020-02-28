@@ -19,7 +19,7 @@
         <!-- Add your actions here -->
         <action id="Flutter.AutoJson.GenerateAction" class="com.ykrank.flutter.GenerateJson" text="JsonSerializable"
                 description="Generate code for flutter json_serializable model.">
-            <add-to-group group-id="GenerateGroup" anchor="last"/>
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
             <add-to-group group-id="EditMenu" anchor="first" />
             <add-to-group group-id="EditorPopupMenu" anchor="first" />
             <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt J" />

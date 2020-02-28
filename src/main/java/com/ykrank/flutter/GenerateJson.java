@@ -40,6 +40,7 @@ public class GenerateJson extends AnAction {
     private String mClassName = "";
     private String mFileContent = "";
     private int mClassLine = -1;
+    private int mLastImportLine = -1;
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -50,7 +51,7 @@ public class GenerateJson extends AnAction {
         if (mFileContent == null || mFileContent.equals("")) {
             return;
         }
-        if (mClassName != null && !mClassName.equals("") && mClassLine > 0) {
+        if (mClassName != null && !mClassName.equals("") && mClassLine >= 0) {
             JSON_PACKAGE_IMPORT = "import 'package:json_annotation/json_annotation.dart';";
             PART_IMPORT = "part '" + mFileName + ".g.dart';";
             ANNOTATION = "@JsonSerializable()\n";
@@ -62,29 +63,35 @@ public class GenerateJson extends AnAction {
                     + mClassName
                     + "ToJson(this);\n\n";
 
-            int column = mCaret.getVisualPosition().column;
-            mCaret.moveToVisualPosition(new VisualPosition(mClassLine > 0 ? 0 : mClassLine - 1, 0));
+            int addLine = 1;
+            mCaret.moveToVisualPosition(new VisualPosition(mClassLine, 0));
             WriteCommandAction.runWriteCommandAction(mProject, () -> {
                 mDocument.insertString(mCaret.getOffset(), ANNOTATION);
             });
-            if (!mFileContent.contains(JSON_PACKAGE_IMPORT)) {
-                mDocument.insertString(0, JSON_PACKAGE_IMPORT
-                        + "\n\n");
-            }
+            addLine += 1;
+
             if (!mFileContent.contains(PART_IMPORT)) {
-                mCaret.moveToVisualPosition(new VisualPosition(mClassLine > 0 ? 0 : mClassLine - 1, 0));
+                addLine += 2;
+                int line = Math.max(0, Math.min(mLastImportLine + 1, mClassLine - 1));
+                mCaret.moveToVisualPosition(new VisualPosition(line, 0));
                 WriteCommandAction.runWriteCommandAction(mProject, () -> {
                     mDocument.insertString(mCaret.getOffset(), PART_IMPORT + "\n\n");
                 });
             }
 
-            mCaret.moveToVisualPosition(new VisualPosition(mClassLine + 7, 0));
+            if (!mFileContent.contains(JSON_PACKAGE_IMPORT)) {
+                addLine += 2;
+                WriteCommandAction.runWriteCommandAction(mProject, () -> {
+                    mDocument.insertString(0, JSON_PACKAGE_IMPORT
+                            + "\n\n");
+                });
+            }
+
+            mCaret.moveToVisualPosition(new VisualPosition(mClassLine + addLine, 0));
             int offset = mCaret.getOffset();
             WriteCommandAction.runWriteCommandAction(mProject, () -> {
                 mDocument.insertString(offset == -1 ? 0 : offset, JSON_METHOD);
             });
-
-            mCaret.moveToVisualPosition(new VisualPosition(mClassLine + 7, column));
         }
     }
 
@@ -129,29 +136,31 @@ public class GenerateJson extends AnAction {
             return;
         }
 
-        String rgex = "class(.*?)(extends(.*?))?(implements(.*?))?\\{";
-        Pattern pattern = Pattern.compile(rgex);// 匹配的模式
+        String regex = "class(.*?)(extends(.*?))?(implements(.*?))?\\{";
+        Pattern pattern = Pattern.compile(regex);// 匹配的模式
         Matcher m = pattern.matcher(fileContent);
         List<String> list = new ArrayList<>();
         List<Integer> startList = new ArrayList<>();
         SelectionModel selectionModel = mEditor.getSelectionModel();
         int offset = selectionModel.getSelectionStart();
         while (m.find()) {
-            list.add(m.group(1));
+            list.add(m.group(1).trim());
             startList.add(m.start());
         }
         if (list.size() > 0) {
-            int chooseOffset = startList.get(0);
-            int index = 1;
             int chooseIndex = 0;
-            while (chooseOffset < offset && index < list.size()) {
-                chooseIndex++;
-                chooseOffset = startList.get(index);
-                index++;
+            for (int i = 0; i < list.size(); i++) {
+                if(startList.get(i) >= offset){
+                    break;
+                }
+                chooseIndex = i;
             }
             mClassName = list.get(chooseIndex);
-            mClassLine = startList.get(chooseIndex);
+            int mOffset = startList.get(chooseIndex);
+            mClassLine = mDocument.getLineNumber(mOffset);
         }
+
+        mLastImportLine = fileContent.lastIndexOf("import ");
     }
 
     private void showInfoDialog(String message) {
