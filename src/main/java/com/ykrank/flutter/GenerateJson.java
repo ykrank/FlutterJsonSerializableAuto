@@ -98,17 +98,23 @@ public class GenerateJson extends AnAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         super.update(e);
-        e.getPresentation().setEnabled(false);
-        Project project = e.getProject();
-        if (project != null) {
-            Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-            PsiFile file = PsiUtilBase.getPsiFileInEditor(editor, project);
-            if (file != null) {
-                String fileName = file.getName();
-                if (fileName.contains(".dart")) {
-                    e.getPresentation().setEnabled(true);
+        try {
+            e.getPresentation().setEnabled(false);
+            Project project = e.getProject();
+            if (project != null) {
+                Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+                PsiFile file = PsiUtilBase.getPsiFileInEditor(editor, project);
+                if (file != null) {
+                    String fileName = file.getName();
+                    if (fileName.contains(".dart")) {
+                        e.getPresentation().setEnabled(true);
+                    }
                 }
             }
+        } catch (NullPointerException ignored) {
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -150,7 +156,7 @@ public class GenerateJson extends AnAction {
         if (list.size() > 0) {
             int chooseIndex = 0;
             for (int i = 0; i < list.size(); i++) {
-                if(startList.get(i) >= offset){
+                if (startList.get(i) >= offset) {
                     break;
                 }
                 chooseIndex = i;
